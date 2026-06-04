@@ -15,6 +15,16 @@ jobs:
           node-version: 20
           cache: "npm"
       - run: npm ci
+      - name: Check API key is set
+        run: |
+          if [ -z "$REQRES_API_KEY" ]; then
+            echo "❌ REQRES_API_KEY is empty — did you add the GitHub Secret?"
+            exit 1
+          else
+            echo "✅ REQRES_API_KEY is set (length: ${#REQRES_API_KEY})"
+          fi
+        env:
+          REQRES_API_KEY: ${{ secrets.REQRES_API_KEY }}
       - run: npm test
         env:
           REQRES_API_KEY: ${{ secrets.REQRES_API_KEY }}
