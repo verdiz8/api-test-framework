@@ -51,4 +51,4 @@ npm run load             # k6 load test
 
 ## Key decisions
 
-See [DECISIONS.md](./DECISIONS.md) for the full decision log.
+See [DECISIONS.md](./DECISIONS.md) for the full decision log — 8 architectural decisions with trade-offs documented.
