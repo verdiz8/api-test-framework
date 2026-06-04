@@ -128,6 +128,26 @@ The client constructor accepts an optional `apiKey` parameter. If omitted, it fa
 
 ---
 
+---
+
+## 9. Separate CI and local API keys to isolate rate limits
+
+**When:** June 2026 — k6 load test (6,408 requests) burned through the free-tier daily budget (250 req/day), causing CI to fail until the limit reset.
+
+**What happened:**
+- Ran k6 with 50 VUs at peak — a single load test consumed ~25× the daily free limit
+- CI runs started failing — not because of a code bug, but because ReqRes rejected all requests
+- The CI badge showed red, which would confuse a recruiter or teammate looking at the repo
+
+**Mitigation:**
+- CI uses its own dedicated API key (separate from local dev)
+- k6 script is kept as a manual demo — `npm run load`, not part of CI
+- Load tests in CI require a dedicated staging environment with its own rate-limit budget
+
+This is a real constraint of testing against third-party APIs: rate limits are part of the system, and your CI pipeline needs to account for them. A red badge from rate-limiting is indistinguishable from a red badge from a regression — don't let that happen.
+
+---
+
 ## What I'd add at scale
 
 1. **OpenAPI spec validation** — validate responses against the published spec, not hand-written schemas
