@@ -49,6 +49,44 @@ npm run load             # k6 load test
 - **Schema validation caching.** Ajv validators are compiled once and cached — adds ~0ms overhead on repeated calls.
 - **Response timing on every request.** `durationMs` is captured in the client, not opt-in per test. Performance regressions surface automatically.
 
+## CI/CD integration
+
+### This repo (self-test)
+
+Pushes to `main` and pull requests trigger `ci.yml`, which runs the full test suite and uploads JUnit results as build artifacts.
+
+### Other projects (reusable workflow)
+
+Any project can run this test suite in their own CI pipeline by calling the reusable workflow:
+
+```yaml
+# In your project's .github/workflows/test.yml
+jobs:
+  api-tests:
+    uses: verdiz8/api-test-framework/.github/workflows/reusable-tests.yml@main
+    secrets:
+      API_KEY: ${{ secrets.REQRES_API_KEY }}
+```
+
+**How it works:**
+
+```
+Project A repo                         This repo (api-test-framework)
+──────────────                         ─────────────────────────────
+Dev pushes feature                     
+  → CI triggers                        
+    → calls reusable-tests.yml ──────→ Checks out this repo
+                                      Runs npm ci
+                                      Runs contract/auth/CRUD tests
+                                      Uploads JUnit artifacts
+    ← test results ──────────────────→ 
+  → if green: merge/deploy             
+```
+
+**Why this matters:** The test framework is versioned independently from any app. Multiple services can reference it without copy-pasting test code. When a contract test fails, it blocks the deploy — the developer knows immediately if their change breaks the API contract.
+
+**To extend for real projects:** parameterize `BASE_URL` in the reusable workflow so tests run against the caller's staging/deployed environment, not just ReqRes.
+
 ## Key decisions
 
 See [DECISIONS.md](./DECISIONS.md) for the full decision log — 8 architectural decisions with trade-offs documented.

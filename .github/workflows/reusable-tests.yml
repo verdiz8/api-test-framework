@@ -1,0 +1,44 @@
+name: Reusable API Tests
+# Reusable workflow — call this from any project that needs to run
+# the api-test-framework contract/auth/CRUD test suite.
+#
+# Usage from another repo:
+#
+#   jobs:
+#     api-tests:
+#       uses: verdiz8/api-test-framework/.github/workflows/reusable-tests.yml@main
+#       secrets:
+#         API_KEY: ${{ secrets.REQRES_API_KEY }}
+on:
+  workflow_call:
+    secrets:
+      API_KEY:
+        required: true
+        description: "ReqRes API key (x-api-key header)"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: verdiz8/api-test-framework
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - name: Run tests
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+        env:
+          REQRES_API_KEY: ${{ secrets.API_KEY }}
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/
+            test-output.txt
